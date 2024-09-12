@@ -37,13 +37,13 @@ SELECT  first_name, last_name
 FROM actor
 WHERE last_name LIKE '%Gibson%';
 
--- 7.Encuentra los nombres de los actores que tengan un actor_id entre 10 y 20.
+-- 7. Encuentra los nombres de los actores que tengan un actor_id entre 10 y 20.
 
 SELECT  actor_id, CONCAT (first_name,' ', last_name) AS nombre_completo_cast
 FROM actor
 WHERE actor_id BETWEEN 10 AND 20;
 
--- 8.Encuentra el título de las películas en la tabla film que no sean ni "R" ni "PG-13" en cuanto a su clasificación.
+-- 8. Encuentra el título de las películas en la tabla film que no sean ni "R" ni "PG-13" en cuanto a su clasificación.
 
 SELECT title, rating
 FROM film
@@ -156,14 +156,15 @@ GROUP BY actor.first_name, actor.last_name
 HAVING COUNT(film_actor.film_id) >= 5;
 
 -- 22. Encuentra el título de todas las películas que fueron alquiladas por más de 5 días. Utiliza una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego selecciona las películas correspondientes.
--- Incorrecto 
-SELECT film.title
+ 
+SELECT film.title 
 FROM film
 WHERE film.film_id IN (SELECT inventory.film_id
 					   FROM inventory
                        INNER JOIN rental
 					   ON rental.inventory_id = inventory.inventory_id
-		               WHERE COUNT(rental.rental_id > 5));
+		               WHERE rental.return_date - rental.rental_date > 5
+);
 
 -- 23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado en películas de la categoría "Horror" y luego exclúyelos de la lista de actores.
 
@@ -176,3 +177,27 @@ WHERE actor.actor_id NOT IN (SELECT film_actor.actor_id
                              INNER JOIN category
                              ON category.category_id = film_category.category_id
 							 WHERE category.name = 'Horror'
+);
+
+-- 24 BONUS. Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla film.	
+
+SELECT film.title, film.length
+FROM film
+WHERE film.length > 180 AND film.film_id IN (SELECT film_category.film_id
+											   FROM film_category
+											   INNER JOIN category
+											   ON category.category_id = film_category.category_id
+											   WHERE category.name = 'Comedy'
+);
+
+-- 25 BONUS. Encuentra todos los actores que han actuado juntos en al menos una película. La consulta debe mostrar el nombre y apellido de los actores y el número de películas en las que han actuado juntos.
+--           Incompleto e incorrecto.
+
+SELECT actor.first_name, actor.last_name, COUNT(film.film_id)
+FROM actor
+WHERE actor.actor_id IN (SELECT film_actor.film_id
+						 FROM film_actor
+						 INNER JOIN film
+						 ON film.film_id = film_actor.film_id
+						 WHERE COUNT(film.film_id) >= 1
+);
